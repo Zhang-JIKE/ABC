@@ -8,7 +8,7 @@
 - 线程正在执行一个 Java 方法，这个计数器记录的是正在执行的虚拟机字节码指令的地址
 - 正在执行的是 Native 方法，这个计数器的值则为 (Undefined)
 ### 1.2 虚拟机栈  <kbd>生命周期和线程一致</kbd>
-![虚拟机栈](https://user-images.githubusercontent.com/28483207/117165315-f68e9980-adf7-11eb-8cf5-5bdfec1c6f57.png)
+![虚拟机栈](https://user-images.githubusercontent.com/28483207/117582915-f57ea480-b136-11eb-8d3d-59fdcbffffd4.png)
 > 描述了 Java 方法执行的内存模型：每个方法在执行时都会床创建一个栈帧(Stack Frame)，每一个方法从调用直至执行结束，就对应着一个栈帧从虚拟机栈中入栈到出栈的过程。
 - **局部变量表**
 
