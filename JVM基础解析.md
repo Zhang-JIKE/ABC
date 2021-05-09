@@ -1,6 +1,6 @@
 # JVM基础解析
 ## 1. JVM内存模型
-![JVM内存模型](https://user-images.githubusercontent.com/28483207/117580809-58b70980-b12c-11eb-99ce-d8af449f777f.png)
+![JVM内存模型](https://user-images.githubusercontent.com/28483207/117580841-7d12e600-b12c-11eb-9e4a-abef00f33df4.png)
 ### 1.1 程序计数器  <kbd>内存占用小</kbd> <kbd>唯一不会OOM</kbd>
 > JVM的多线程是通过CPU时间片轮转来实现的，当被挂起的线程重新获取到时间片的时候，它要想从被挂起的地方继续执行，就必须知道它上次执行到哪个位置，
 > 通过程序计数器来记录某个线程的字节码执行位置，就可以在被挂起的线程中从某个地方继续执行，因此每个线程工作时都有属于自己的独立计数器。
