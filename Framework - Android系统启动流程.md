@@ -14,7 +14,7 @@
 
 > zygote进程启动app_main.cpp - main()
 
-> runtime.start() // 启动ZygoteInit
+> 启动ZygoteInit
 
 > ZygoteInit.main() -- preload() // 预加载信息
 > ZygoteInit.main() -- new ZygoteServer() // 创建zygote的socket服务
