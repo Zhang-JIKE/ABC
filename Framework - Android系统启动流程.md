@@ -11,11 +11,11 @@
 > 内核空间：内核层，内核代码
 ## 5. zygote进程
 > zygote进程是Java进程的鼻祖，它会fork出SystemServer进程
+
 > zygote进程启动app_main.cpp - main()
-> > runtime.start() // 启动ZygoteInit
-> ZygoteInit -- startVm() // 创建虚拟机
-> ZygoteInit -- startReg() // 注册JNI方法
-> ZygoteInit -- env->callStaticVoidMethod() // JNI调用ZygoteInit的main()，进入Java世界
+
+> runtime.start() // 启动ZygoteInit
+
 > ZygoteInit.main() -- preload() // 预加载信息
 > ZygoteInit.main() -- new ZygoteServer() // 创建zygote的socket服务
 > ZygoteInit.main() -- r = forkSystemServer() // fork创建SystemServer进程
