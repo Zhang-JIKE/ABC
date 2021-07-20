@@ -10,18 +10,7 @@
 > 用户空间：应用层，执行app
 > 内核空间：内核层，内核代码
 ## 5. zygote进程
-> zygote进程是Java进程的鼻祖，它会fork出SystemServer进程
-
 > zygote进程启动app_main.cpp - main()
-
-> 启动ZygoteInit
-
-> ZygoteInit.main() -- preload() // 预加载信息
-> ZygoteInit.main() -- new ZygoteServer() // 创建zygote的socket服务
-> ZygoteInit.main() -- r = forkSystemServer() // fork创建SystemServer进程
-> ZygoteInit.main() -- r.run() // 执行SystemServer的main方法
-> ZygoteInit.main() -- zygoteServer.runSelectLoop() // zygote进入无限循环
-> 
 ```c++
 class AppRuntime : public AndroidRuntime
 int main(){
@@ -35,19 +24,50 @@ int main(){
 
 > ZygoteInit进程
 ```c++
-AndroidRuntime.start(){
-  //创建虚拟机
+start(){
+  //创建虚拟机，设置内存大小
   startVm(&mJavaVM, &env, zygote, primary_zygote);
   //注册JNI方法
   startReg(env);
-  //JNI调用ZygoteInit的main()，进入Java世界
+  
+  char* slashClassName = toSlashClassName(className != NULL ? className : "")
+  
+  //startClass即为"com.android.internal.os.ZygoteInit"的class
+  jclass startClass = env->FindClass(slashClassName);
+  
+  //获取ZygoteInit.main()方法的ID
   jmethodID startMeth = env->GetStaticMethodID(startClass, "main", "([Ljava/lang/String;)V");
-  env->callStaticVoidMethod();
+  
+  //JNI调用ZygoteInit的main()，进入Java世界
+  env->callStaticVoidMethod(startClass, startMeth, strArray);
 }
 ```
 
+> ZygoteInit.main()
+```c++
+//预加载信息，加载了一部分framework的资源，以及常用的java类，加快了App进程的启动
+preload(bootTimingsTraceLog);
+
+//创建socket，进程通信机制，为什么不用Binder？ 1.Binder还没有完成初始化 2.Binder为多线程机制，fork是写实拷贝，容易导致死锁
+zygoteServer = new ZygoteServer(isPrimaryZygote);
+
+//fork SystemServer进程
+Runnable r = forkSystemServer(abiList, zygoteSocketName, zygoteServer);
+r.run();
+
+//进入死循环，等待AMS的消息来创建进程
+caller = zygoteServer.runSelectLoop(abiList);
+```
+> 思考：为什么使用Zygote去fork App的进程而不是init和SystemServer
+> 1. init创建了很多进程，很多是App进程不需要的
+> 2. 虚拟机的创建在Zygote
+> 3. SystemServer需要启动近100个服务AMS WMS PMS等，这些服务并非是App进程必须的，App可以利用进程通信来访问这些服务
+
 ## 6. SystemServer
 > AMS WMS PMS均由SystemServer启动
+```c++
+
+```
 ## 7. Apps
 > zygote启动App进程
 
