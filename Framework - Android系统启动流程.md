@@ -74,9 +74,55 @@ class ZygoteInit{
     
     int pid = Zygote.forkSystemServer(parsedArgs.mUid,...);
     
-    //pid == 0 表示子进程
+    //pid == 0 表示当前为子进程，若当前为父进程返回值为子进程pid
     if(pid == 0){
       return handleSystemServerProcess(parsedArgs);
+    }
+  }
+  
+  private static Runnable handleSystemServerProcess(ZygoteArguments parsedArgs){
+    final String systemServerClasspath = Os.getenv("SYSTEMSERVERCLASSPATH");
+    
+    //创建类加载器，设置当前线程的类加载器
+    ClassLoader cl = createPathClassLoader(systemServerClasspath, parsedArgs.mTargetSdkVersion);
+    Thread.currentThread().setContextClassLoader(cl);
+    
+    return ZygoteInit.zygoteInit(parsedArgs.mTargetSdkVersion, parsedArgs.mDisabledCompatChanges, parsedArgs.mRemainingArgs, cl);
+    
+    public static final Runnable zygoteInit(int targetSdkVersion, long[] disabledCompatChanges, String[] argv, ClassLoader classLoader){
+      return RuntimeInit.applicationInit(targetSdkVersion, disabledCompatChanges, argv, classLoader);
+    }
+  }
+}
+```
+
+```java
+class RuntimeInit{
+  protected static Runnable applicationInit(int targetSdkVersion, long[] disabledCompatChanges, String[] argv, ClassLoader classLoader){
+  VMRuntime.getRuntime().setTargetSdkVersion(targetSdkVersion);
+  VMRuntime.getRuntime().setDisabledCompatChanges(disabledCompatChanges);
+      
+  final Arguments args = new Arguments(argv);
+      
+  return findStaticMain(args.startClass, args.startArgs, classLoader);
+  }
+   
+  protected static Runnable findStaticMain(String className, String[] argv, ClassLoader classLoader){
+    Class<?> cl = Class.forName(className, true, classLoader);
+    Method m = cl.getMethod("main", new Class[]{ String[].class });
+    return new MethodAndArgsCaller(m, argv);
+  }
+   
+  static class MethodAndArgsCaller implements Runnable{
+    private final Method method;
+    private final String[] mArgs;
+  
+    //构造方法
+    public MethodAndArgsCaller(...);
+    
+    //反射多线程调用SystemServer的main方法
+    public void run(){
+      mMethod.invoke(null, new Object[]{ mArgs });
     }
   }
 }
