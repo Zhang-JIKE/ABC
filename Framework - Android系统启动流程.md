@@ -167,7 +167,9 @@ class SystemServer{
     //WMS服务,AMS.systemReady()启动桌面
     startOtherServices();
   }
-  
+  ```
+  ### 7.1 startBootstrapServices ATMS AMS
+  ```java
   private void startBootstrapServices(){
     //1.通过反射创建对象 2.调用Lifecycle的onStart()方法
     ActivityTaskManagerService atm = mSystemServiceManager.startService(ActivityTaskManagerService.Lifecycle.class).getService();
@@ -258,10 +260,57 @@ class ActivityManagerService{
   }
 }
 ```
+### 7.2 startOtherServices WMS
+```java
+class SystemServer{
+  
+  private void startOtherServices(){
+    wm = WindowManagerService.main(context, ..., new PhoneWindowManager(), mActivityManagerService.mActivityTaskManager);
+    ServiceManager.addService(Context.WINDOW_SERVICE, wm, ...);
+    
+    mActivityManagerService.setWindowManager(wm);
+    
+    //开始启动launcher
+    mActivityManagerService.systemReady();
+    
+  }
+}
 
-# Android App安装流程
+class ActivityManagerService{
+  public void systemReady(final Runnable goingCallback, ...){
+    //启动桌面
+    mAtmInternal.resumeTopActivities(false);
+  }
+}
+```
 
-# Android App启动流程
+### 7.3 SystemServiceManager（管理SystemService生命周期） 和 ServiceManager（大管家，管理系统服务）
+
+## 8. Activity启动流程
+> AMS 对 Activity的启动管理
+> Activity.startActivity() ->
+> Activity.startActivityForResult() ->
+> Instrumentation.execStartActivity() -> 
+> Android9.0 及之前通过Binder跨进程进入AMS的startActivity() 9.0之后是ATM的startActivity(),如:ActivityTaskManager.getService().startActivity() -> 
+> ActivityTaskManager.getService() -> ServiceManager.getService(Context.ACTIVITY_TASK_SERVICE); -> ActivityTaskManagerService.startActivity() ->
+> ActivityTaskManagerService.startActivityAsUser() -> getActivityStartController().obtainStarter().execute() -> ActivityStarter.execute(); ->
+> ActivityStarter.executeRequest() -> ActivityStarter.startActivityUnchecked() -> ActivityStarter.startActivityInner() -> 
+> 判断需要启动的Activity所在进程是否已经启动，如果已经启动，resumeFocusedStacksTopActivities() -> resumeTopActivityUncheckedLocked() ->
+> resumeTopActivityInnerLocked() -> mStackSupervisor.startSpecificActivity()
+> 如果进程未启动，mService.startProcessAsync() -> ActivityManagerInternal::startProcess -> startProcessLocked() -> startProcess() -> Process.start() ->
+> ZYGOTE.start() -> startViaZygote() -> socket()让zygote创建应用进程 -> 通过反射执行ActivityThread的main()方法 -> thread.attach -> mgr.attachApplication(mAppThread,...) ->
+
+## 9. Android Activity生命周期
+> ActivityStackSupervisor.realStartActivityLocked()
+```java
+class ActivityStackSupervisor{
+  
+  boolean realStartActivityLocked(...){
+    mService.getLifecycleManager().scheduleTransaction();
+  }
+
+}
+```
 
 # Android Activity启动流程
 
