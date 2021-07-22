@@ -44,7 +44,7 @@ start(){
 ```
 
 > ZygoteInit.main()
-```c++
+```java
 //预加载信息，加载了一部分framework的资源，以及常用的java类，加快了App进程的启动
 preload(bootTimingsTraceLog);
 
@@ -64,8 +64,23 @@ caller = zygoteServer.runSelectLoop(abiList);
 > 3. SystemServer需要启动近100个服务AMS WMS PMS等，这些服务并非是App进程必须的，App可以利用进程通信来访问这些服务
 
 ## 6. SystemServer
-> AMS WMS PMS均由SystemServer启动
-```c++
+> Runnable r = forkSystemServer(abiList, zygoteSocketName, zygoteServer);
+```java
+class ZygoteInit{
+  private static Runnable forkSystemServer(String abiList, String socketName, ZygoteServer zygoteServer){
+    String args[] = {...,"com.android.server.SystemServer"};
+    ZygoteArguments parsedArgs = null;
+    parsedArgs = new ZygoteArguments(args);
+    
+    int pid = Zygote.forkSystemServer(parsedArgs.mUid,...);
+    
+    //pid == 0 表示子进程
+    if(pid == 0){
+      return handleSystemServerProcess(parsedArgs);
+    }
+  }
+}
+![fork](https://user-images.githubusercontent.com/28483207/126585573-74e2537b-4bfa-4f89-af6d-d0f636183a56.png)
 
 ```
 ## 7. Apps
