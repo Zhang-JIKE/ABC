@@ -80,9 +80,9 @@ class ZygoteInit{
     }
   }
 }
+```
 ![fork](https://user-images.githubusercontent.com/28483207/126585573-74e2537b-4bfa-4f89-af6d-d0f636183a56.png)
 
-```
 ## 7. Apps
 > zygote启动App进程
 
