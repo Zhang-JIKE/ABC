@@ -22,7 +22,7 @@ int main(){
 }
 ```
 
-> ZygoteInit进程
+> runtime.start() ZygoteInit进程
 ```c++
 start(){
   //创建虚拟机，设置内存大小
@@ -43,20 +43,24 @@ start(){
 }
 ```
 
-> ZygoteInit.main()
+> JNI调用并执行执行ZygoteInit的Java main()方法
 ```java
-//预加载信息，加载了一部分framework的资源，以及常用的java类，加快了App进程的启动
-preload(bootTimingsTraceLog);
+class ZygoteInit{
+  public static void main(){
+    //预加载信息，加载了一部分framework的资源，以及常用的java类，加快了App进程的启动
+    preload(bootTimingsTraceLog);
 
-//创建socket，进程通信机制，为什么不用Binder？ 1.Binder还没有完成初始化 2.Binder为多线程机制，fork是写实拷贝，容易导致死锁
-zygoteServer = new ZygoteServer(isPrimaryZygote);
+    //创建socket，进程通信机制，为什么不用Binder？ 1.Binder还没有完成初始化 2.Binder为多线程机制，fork是写实拷贝，容易导致死锁
+    zygoteServer = new ZygoteServer(isPrimaryZygote);
 
-//fork SystemServer进程
-Runnable r = forkSystemServer(abiList, zygoteSocketName, zygoteServer);
-r.run();
+    //fork SystemServer进程
+    Runnable r = forkSystemServer(abiList, zygoteSocketName, zygoteServer);
+    r.run();
 
-//进入死循环，等待AMS的消息来创建进程
-caller = zygoteServer.runSelectLoop(abiList);
+    //进入死循环，等待AMS的消息来创建进程
+    caller = zygoteServer.runSelectLoop(abiList);
+  }
+}
 ```
 > 思考：为什么使用Zygote去fork App的进程而不是init和SystemServer
 > 1. init创建了很多进程，很多是App进程不需要的
